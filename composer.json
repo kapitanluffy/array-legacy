@@ -1,0 +1,17 @@
+{
+    "name": "kapitanluffy/array-legacy",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Kapitanluffy Pirata",
+            "email": "kapitanluffy@gmail.com"
+        }
+    ],
+    "require": {},
+    "autoload": {
+        "psr-0": {
+            "Kapitanluffy\\ArrayLegacy\\":  "src/"
+        }
+    }
+}
