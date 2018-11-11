@@ -4,7 +4,7 @@ namespace Kapitanluffy\ArrayLegacy;
 
 use Kapitanluffy\ArrayLegacy\ArrayAccessTrait;
 
-class ArrayLegacy implements \ArrayAccess
+class ArrayLegacy implements \ArrayAccess, \IteratorAggregate, \Countable, \Serializable
 {
     use ArrayAccessTrait;
 
@@ -201,5 +201,47 @@ class ArrayLegacy implements \ArrayAccess
     protected function toSnakeCase($string)
     {
         return trim(mb_strtolower(preg_replace('#(\p{Lu})#u', '_$1', $string)), '_');
+    }
+
+    /**
+     * Allow object to be traversable using foreach
+     *
+     * @return \Traversable
+     */
+    public function getIterator()
+    {
+        return new \ArrayIterator($this->attributes);
+    }
+
+    /**
+     * Count attributes of the object
+     *
+     * @return int
+     */
+    public function count()
+    {
+        return count($this->attributes);
+    }
+
+    /**
+     * Serialize the current attributes
+     *
+     * @return string
+     */
+    public function serialize()
+    {
+        return serialize($this->attributes);
+    }
+
+    /**
+     * Unserialize the provided string
+     *
+     * @param  string $string
+     *
+     * @return \ArrayLegacy
+     */
+    public function unserialize($string)
+    {
+        $this->attributes = unserialize($string);
     }
 }
