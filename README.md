@@ -88,3 +88,28 @@ echo $foo->setTitle("This is a test");
 // Output: This Is A Test
 echo $foo->getTitle();
 ```
+
+Using PHP array functions
+
+You can use [array functions](https://secure.php.net/manual/en/ref.array.php) by calling it directly in the object.
+- Functions with an `array_` prefix can be called without the prefix.
+- Functions returning the array type will return a new `ArrayLegacy` instance.
+- Functions that pass the array by reference will modify the current instance.
+
+Unsupported functions are the following:
+- array_combine
+- array_fill_keys
+- array_fill
+- range
+- list
+- extract
+
+```php
+$foo = new Foo($foo);
+
+// calls array_keys, returns a new ArrayLegacy instance of keys
+$foo->keys('bar');
+
+// calls shuffle and applies it to the current instance
+$foo->shuffle();
+```
