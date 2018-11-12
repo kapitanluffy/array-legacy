@@ -129,6 +129,99 @@ class ArrayLegacy implements \ArrayAccess, \IteratorAggregate, \Countable, \Seri
             return call_user_func_array([$this, "{$match[1]}Attribute"], $args);
         }
 
+        // basic array functions
+        $basic = [
+            'array_change_key_case', 'array_chunk', 'array_count_values', 'array_diff_assoc',
+            'array_diff_key', 'array_diff_uassoc', 'array_diff_ukey', 'array_diff',
+            'array_filter', 'array_flip', 'array_intersect_assoc', 'array_intersect_key',
+            'array_intersect_uassoc', 'array_intersect_ukey', 'array_intersect', 'array_key_first',
+            'array_key_last', 'array_keys', 'array_merge_recursive', 'array_merge',
+            'array_pad', 'array_product',
+            'array_rand', 'array_reduce', 'array_replace_recursive', 'array_replace', 'array_reverse',
+            'array_slice', 'array_sum',
+            'array_udiff_assoc', 'array_udiff_uassoc', 'array_udiff', 'array_uintersect_assoc', 'array_uintersect_uassoc',
+            'array_uintersect', 'array_unique', 'array_values', 'array_walk',
+            'count', 'current', 'end', 'key', 'pos', 'sizeof'
+        ];
+
+        // functions that don't have arrays as first parameter
+        $notFirst = [
+            'array_key_exists', // bool array_key_exists ( mixed $key , array $array )
+            'key_exists', // array_key_exists alias
+            'array_map', // array array_map ( callable $callback , array $array1 [, array $... ] )
+            'array_search', // mixed array_search ( mixed $needle , array $haystack [, bool $strict = FALSE ] )
+            'in_array', // bool in_array ( mixed $needle , array $haystack [, bool $strict = FALSE ] )
+            'in', // in_array alias
+        ];
+
+        // functions that modify the first array parameter
+        $byReference = [
+            'array_multisort', // bool
+            'array_pop', // mixed
+            'array_push', // int
+            'array_shift', // mixed
+            'array_splice', // array
+            'array_unshift', // int
+            'array_walk_recursive', // bool
+            'array_walk', // bool
+            'arsort', // bool
+            'asort', // bool
+            'each', // key-value pair
+            'krsort', // bool
+            'ksort', // bool
+            'natcasesort', // bool
+            'natsort', // bool
+            'next', // bool
+            'prev', // bool
+            'reset', // mixed
+            'rsort', // bool
+            'shuffle', // bool
+            'sort', // bool
+            'uasort', // bool
+            'uksort', // bool
+            'usort', // bool
+        ];
+
+        $unsupported = ['array_combine', 'array_fill_keys', 'array_fill', 'range', 'list', 'extract'];
+
+        $functions = array_merge($basic, $notFirst, $byReference);
+        $prefixed = in_array("array_$method", $functions);
+        $others = in_array($method, $functions);
+
+        if ($prefixed || $others) {
+            $fn = $method;
+
+            if ($prefixed) {
+                $fn = "array_$method";
+            }
+
+            if ($fn === 'in') {
+                $fn = 'in_array';
+            }
+
+            // rearrange parameters
+            $params = [];
+            if (in_array($fn, $notFirst)) { $params[] = array_shift($args); }
+            $params[] =& $this->attributes;
+            foreach ($args as $v) { $params[] = $v; }
+
+            // customize error handling to point to proper file and line
+            set_error_handler(function ($errno, $errstr, $errfile, $errline, $errcontext) {
+                $trace = debug_backtrace();
+                $origin = $trace[(count($trace) -1)];
+                throw new \ErrorException($errstr, $errno, $errno, $origin['file'], $origin['line']);
+            });
+
+            $result = call_user_func_array($fn, $params);
+            restore_error_handler();
+
+            if (is_array($result) == false) {
+                return $result;
+            }
+
+            return self::make($result);
+        }
+
         throw new \BadMethodCallException("Undefined $method method");
     }
 
